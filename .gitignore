@@ -1,0 +1,11 @@
+# Build artifacts
+build/
+
+# vcpkg generated files
+vcpkg_installed/
+
+# macOS
+.DS_Store
+
+# VS Code personal state
+.vscode/*.code-workspace
