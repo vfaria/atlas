@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-test-lint:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install llvm cmake
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          cd "$HOME/vcpkg"
+          git checkout e12aaf7336cc1e348c43a1244f348451b534c0a9
+          ./bootstrap-vcpkg.sh -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> "$GITHUB_ENV"
+
+      - name: Configure
+        run: cmake --preset debug
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Build
+        run: cmake --build --preset debug
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Test
+        run: ctest --preset debug
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Format check
+        run: cmake --build --preset debug --target format-check
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Clang-Tidy
+        run: cmake --build --preset debug --target tidy-check
+        working-directory: projects/000-engineering-lab-bootstrap
+
+  coverage:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install llvm cmake
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$HOME/vcpkg"
+          "$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+          echo "VCPKG_ROOT=$HOME/vcpkg" >> "$GITHUB_ENV"
+
+      - name: Configure coverage
+        run: cmake --preset coverage
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Build coverage
+        run: cmake --build --preset coverage
+        working-directory: projects/000-engineering-lab-bootstrap
+
+      - name: Run coverage
+        run: cmake --build --preset coverage --target coverage
+        working-directory: projects/000-engineering-lab-bootstrap
