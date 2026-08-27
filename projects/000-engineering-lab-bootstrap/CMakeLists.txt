@@ -59,3 +59,46 @@ add_custom_target(format-check
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking C++ formatting"
 )
+
+find_program(CLANG_TIDY_EXECUTABLE
+    NAMES clang-tidy
+    REQUIRED
+)
+
+add_custom_target(tidy-check
+    COMMAND
+        ${CLANG_TIDY_EXECUTABLE}
+        -p ${CMAKE_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cpp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running clang-tidy"
+)
+
+find_program(LLVM_COV_EXECUTABLE
+    NAMES llvm-cov
+    REQUIRED
+)
+
+find_program(LLVM_PROFDATA_EXECUTABLE
+    NAMES llvm-profdata
+    REQUIRED
+)
+
+add_custom_target(coverage
+    COMMAND ${CMAKE_COMMAND} -E env
+        LLVM_PROFILE_FILE=${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profraw
+        $<TARGET_FILE:atlas-bootstrap-tests>
+    COMMAND ${LLVM_PROFDATA_EXECUTABLE}
+        merge
+        -sparse
+        ${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profraw
+        -o ${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profdata
+    COMMAND ${LLVM_COV_EXECUTABLE}
+        report
+        $<TARGET_FILE:atlas-bootstrap-tests>
+        -instr-profile=${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profdata
+    DEPENDS
+        atlas-bootstrap-tests
+    COMMENT "Running tests and generating coverage report"
+)
