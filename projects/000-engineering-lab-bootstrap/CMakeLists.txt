@@ -21,10 +21,41 @@ add_executable(atlas-bootstrap-tests
     tests/main_test.cpp
 )
 
+include(GoogleTest)
+gtest_discover_tests(atlas-bootstrap-tests)
+
+add_library(atlas_project_warnings INTERFACE)
+
+target_compile_options(atlas_project_warnings
+    INTERFACE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
+
+target_link_libraries(atlas-bootstrap
+    PRIVATE
+        atlas_project_warnings
+)
+
 target_link_libraries(atlas-bootstrap-tests
     PRIVATE
+        atlas_project_warnings
         GTest::gtest_main
 )
 
-include(GoogleTest)
-gtest_discover_tests(atlas-bootstrap-tests)
+find_program(CLANG_FORMAT_EXECUTABLE
+    NAMES clang-format
+    REQUIRED
+)
+
+add_custom_target(format-check
+    COMMAND
+        ${CLANG_FORMAT_EXECUTABLE}
+        --dry-run
+        --Werror
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cpp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Checking C++ formatting"
+)
