@@ -6,9 +6,14 @@ project(
     LANGUAGES CXX
 )
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(CompilerWarnings)
+include(CLangTools)
 
 add_executable(atlas-bootstrap
     src/main.cpp
@@ -24,14 +29,7 @@ add_executable(atlas-bootstrap-tests
 include(GoogleTest)
 gtest_discover_tests(atlas-bootstrap-tests)
 
-add_library(atlas_project_warnings INTERFACE)
-
-target_compile_options(atlas_project_warnings
-    INTERFACE
-        -Wall
-        -Wextra
-        -Wpedantic
-)
+include(Coverage)
 
 target_link_libraries(atlas-bootstrap
     PRIVATE
@@ -42,63 +40,4 @@ target_link_libraries(atlas-bootstrap-tests
     PRIVATE
         atlas_project_warnings
         GTest::gtest_main
-)
-
-find_program(CLANG_FORMAT_EXECUTABLE
-    NAMES clang-format
-    REQUIRED
-)
-
-add_custom_target(format-check
-    COMMAND
-        ${CLANG_FORMAT_EXECUTABLE}
-        --dry-run
-        --Werror
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cpp
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Checking C++ formatting"
-)
-
-find_program(CLANG_TIDY_EXECUTABLE
-    NAMES clang-tidy
-    REQUIRED
-)
-
-add_custom_target(tidy-check
-    COMMAND
-        ${CLANG_TIDY_EXECUTABLE}
-        -p ${CMAKE_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/main_test.cpp
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running clang-tidy"
-)
-
-find_program(LLVM_COV_EXECUTABLE
-    NAMES llvm-cov
-    REQUIRED
-)
-
-find_program(LLVM_PROFDATA_EXECUTABLE
-    NAMES llvm-profdata
-    REQUIRED
-)
-
-add_custom_target(coverage
-    COMMAND ${CMAKE_COMMAND} -E env
-        LLVM_PROFILE_FILE=${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profraw
-        $<TARGET_FILE:atlas-bootstrap-tests>
-    COMMAND ${LLVM_PROFDATA_EXECUTABLE}
-        merge
-        -sparse
-        ${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profraw
-        -o ${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profdata
-    COMMAND ${LLVM_COV_EXECUTABLE}
-        report
-        $<TARGET_FILE:atlas-bootstrap-tests>
-        -instr-profile=${CMAKE_BINARY_DIR}/atlas-bootstrap-tests.profdata
-    DEPENDS
-        atlas-bootstrap-tests
-    COMMENT "Running tests and generating coverage report"
 )
