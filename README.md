@@ -10,14 +10,19 @@ Atlas aims to become a world-class engineering laboratory for mastering the prin
 
 ## Current Status
 
-Current Sprint: Sprint 0 — Foundation
+The program roadmap, current progress, session history, achievements, and next actions are maintained in the **Atlas Program Tracker**.
 
-Current Focus
+**Program Tracker:** [Atlas Program Tracker](https://docs.google.com/spreadsheets/d/11vYJr55fPyYpDoNsXh0XYBs1crC0c6L8/edit?gid=994878174#gid=994878174)
 
-- Engineering Lab
-- Modern C++ Foundations
-- Mathematical Foundations
-- Toolchain
+The tracker is the operational source of truth for the program and follows the OODA model:
+
+* **Observe** — record what happened and what was learned
+* **Orient** — assess current understanding and context
+* **Decide** — determine the next highest-value step
+* **Act** — execute the next step and update the tracker
+
+The roadmap uses flexible effort estimates rather than fixed deadlines. Actual effort, demonstrated understanding, achievements, and session history determine progression.
+
 
 # Why Atlas Exists
 
